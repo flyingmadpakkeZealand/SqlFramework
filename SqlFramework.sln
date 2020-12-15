@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SqlFrameworkTests", "SqlFra
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestModelLib", "TestModelLib\TestModelLib.csproj", "{0F7A5471-B071-44F6-8DF8-341F432BCA3F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sandbox", "Sandbox\Sandbox.csproj", "{A5934E7D-F4D3-4150-9BB2-B0ED02553AC0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{0F7A5471-B071-44F6-8DF8-341F432BCA3F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0F7A5471-B071-44F6-8DF8-341F432BCA3F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0F7A5471-B071-44F6-8DF8-341F432BCA3F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A5934E7D-F4D3-4150-9BB2-B0ED02553AC0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A5934E7D-F4D3-4150-9BB2-B0ED02553AC0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A5934E7D-F4D3-4150-9BB2-B0ED02553AC0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A5934E7D-F4D3-4150-9BB2-B0ED02553AC0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
