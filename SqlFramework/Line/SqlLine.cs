@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Data.SqlClient;
 
-namespace SqlFramework
+namespace SqlFramework.Line
 {
     public class SqlLine
     {
@@ -13,40 +13,40 @@ namespace SqlFramework
         public bool Initialized => _initialized;
         internal List<Parse> Functions { get; }
 
-        public SqlLine()
+        #region Creation
+        public static SqlLineBuilder Build()
+        {
+            return new SqlLineBuilder();
+        }
+
+        public static SqlLineBuilder Build(string str)
+        {
+            return new SqlLineBuilder(str);
+        }
+
+        public static SqlLineBuilder Build(SqlLine sqlLine)
+        {
+            return new SqlLineBuilder(sqlLine);
+        }
+
+        public static implicit operator SqlLine(SqlLineBuilder sqlLineBuilder) => sqlLineBuilder.ToSqlLine();
+
+        internal SqlLine()
         {
             Functions = new List<Parse>();
             _sqlString = string.Empty;
         }
 
-        public SqlLine(string str)
-        {
-            Functions = new List<Parse>();
-            _sqlString = string.Empty;
-
-            _str = str + " ";
-
-            new Parse(this, parameters => _str).Empty();
-        }
-
-        private SqlLine(SqlLine sqlLine)
+        internal SqlLine(SqlLine sqlLine)
         {
             Functions = new List<Parse>(sqlLine.Functions);
             _sqlString = sqlLine._sqlString;
             _nextInitOffset = sqlLine._nextInitOffset;
         }
 
-        #region Util
-        private static string Trim(string fullParameter)
+        public SqlLineBuilder CopyAndExtend()
         {
-            int count = 0;
-            char nextChar;
-            do
-            {
-                nextChar = fullParameter[++count];
-            } while (nextChar >= '0' && nextChar <= '9' || nextChar == Setup.Pchar);
-
-            return fullParameter.Remove(0, count);
+            return new SqlLineBuilder(this);
         }
         #endregion
 
@@ -67,6 +67,7 @@ namespace SqlFramework
                         (SqlContainer)parse.Function.DynamicInvoke(
                             data[new Range(count, count + parse.ParamCount)]);
                     cmd.Parameters.AddRange(container.Parameters(i));
+                    count += parse.ParamCount;
                 }
             }
             else
@@ -97,21 +98,6 @@ namespace SqlFramework
 
                         cmd.Parameters.AddRange(sqlParameters);
                     }
-
-                    //if (i >= _nextInitOffset)
-                    //{
-                    //    _sqlString += parse.Initializer(container, i);
-                    //    parse.CleanRefs();
-                    //}
-                    //if (container == null)
-                    //{
-                    //    Functions.RemoveAt(i);
-                    //    i--;
-                    //}
-                    //else
-                    //{
-                    //    cmd.Parameters.AddRange(container.Parameters(i));
-                    //}
                 }
 
                 _nextInitOffset = Functions.Count;
@@ -124,9 +110,14 @@ namespace SqlFramework
             return cmd;
         }
 
-        public List<T> ExecuteQuery<T>(Func<SqlDataReader, T> readFunc, params object[] paramData)
+        public List<TIn> ExecuteQuery<TIn>(Func<SqlDataReader, TIn> readFunc, params object[] paramData)
         {
-            List<T> items = new List<T>();
+            return ExecuteQuery<TIn, List<TIn>>(readFunc, paramData);
+        }
+
+        public TOut ExecuteQuery<TIn, TOut>(Func<SqlDataReader, TIn> readFunc, params object[] paramData) where TOut : ICollection<TIn>, new()
+        {
+            TOut items = new TOut();
 
             using (SqlConnection conn = new SqlConnection(Setup.ConnectionString))
             using (SqlCommand cmd = InitializeCmd(paramData, conn))
@@ -144,6 +135,24 @@ namespace SqlFramework
             return items;
         }
 
+        public T ExecuteQuerySingleRead<T>(Func<SqlDataReader, T> readFunc, params object[] paramData)
+        {
+            using (SqlConnection conn = new SqlConnection(Setup.ConnectionString))
+            using (SqlCommand cmd = InitializeCmd(paramData, conn))
+            {
+                conn.Open();
+
+                SqlDataReader reader = cmd.ExecuteReader();
+
+                if (reader.Read())
+                {
+                    return readFunc(reader);
+                }
+            }
+
+            return default;
+        }
+
         public void ExecuteNonQuery(params object[] paramData)
         {
             using (SqlConnection conn = new SqlConnection(Setup.ConnectionString))
@@ -152,73 +161,6 @@ namespace SqlFramework
                 conn.Open();
 
                 cmd.ExecuteNonQuery();
-            }
-        }
-        #endregion
-
-        #region Str
-        private string _str;
-
-        public SqlLine Str(string str)
-        {
-            SqlLine sqlLine = new SqlLine(this) {_str = str + " "};
-            return new Parse(sqlLine, parameters => sqlLine._str).Empty();
-        }
-        #endregion
-
-        #region Select
-        public SqlLine Select(string tableName)
-        {
-            SqlLine sqlLine = new SqlLine(this) {_str = $"Select * from {tableName} "};
-            return new Parse(sqlLine, parameters => sqlLine._str).Empty();
-        }
-        #endregion
-
-        #region Values
-        private static string InternValues(SqlParameter[] sqlParameters)
-        {
-            string output = "";
-            string values = "";
-
-            foreach (SqlParameter sqlParameter in sqlParameters)
-            {
-                output += Trim(sqlParameter.ParameterName) + ",";
-                values += sqlParameter.ParameterName + ",";
-            }
-
-            output = output.TrimEnd(',');
-            values = values.TrimEnd(',');
-
-             return $"({output}) Values ({values})";
-        }
-
-        public Parse Values
-        {
-            get
-            {
-                return new Parse(new SqlLine(this), InternValues);
-            }
-        }
-        #endregion
-
-        #region Where
-        private static string InternWhere(SqlParameter[] sqlParameters)
-        {
-            string sqlString = "Where ";
-
-            foreach (SqlParameter parameter in sqlParameters)
-            {
-                sqlString += $"{Trim(parameter.ParameterName)} = {parameter.ParameterName} And ";
-            }
-
-            return sqlString.Remove(sqlString.Length - 4);
-        }
-
-        public Parse Where
-        {
-            get
-            {
-                return new Parse(new SqlLine(this), InternWhere);
             }
         }
         #endregion

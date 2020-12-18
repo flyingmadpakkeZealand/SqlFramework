@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SqlFramework;
+using SqlFramework.Line;
 using TestModelLib;
 using static SqlFrameworkTests.TestsSetup;
 
@@ -12,7 +13,7 @@ namespace SqlFrameworkTests
         [TestMethod]
         public void SelectTest()
         {
-            SqlLine sqlLine = new SqlLine().Select(PERSONS_TABLE);
+            SqlLine sqlLine = SqlLine.Build().Select(PERSONS_TABLE);
 
             List<Person> persons = sqlLine.ExecuteQuery(ReadPerson);
 

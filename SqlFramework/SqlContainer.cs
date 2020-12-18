@@ -15,7 +15,7 @@ namespace SqlFramework
             for (int i = 0; i < sqlParameters.Length; i++)
             {
                 Parameter parameter = _parameters[i];
-                SqlParameter sqlParameter = new SqlParameter($"{Setup.Pchar}{mod}{parameter.ColumnName}", parameter.Data);
+                SqlParameter sqlParameter = new SqlParameter($"{Setup.Pchar}{mod}{Setup.Pchar}{parameter.ColumnName}", parameter.Data);
                 sqlParameters[i] = sqlParameter;
             }
 

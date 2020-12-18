@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SqlFramework;
+using SqlFramework.Line;
 using TestModelLib;
 
 namespace SqlFrameworkTests
@@ -49,11 +50,11 @@ namespace SqlFrameworkTests
 
             void CreateTable()
             {
-                SqlLine initLine = new SqlLine($"CREATE TABLE [dbo].[{PERSONS_TABLE}] (" +
-                                               "[person_id] INT NOT NULL, " +
-                                               "[person_age] TINYINT NULL, " +
-                                               "[person_name] NVARCHAR (50) NULL, " +
-                                               "PRIMARY KEY CLUSTERED ([person_id] ASC))");
+                SqlLine initLine = SqlLine.Build($"CREATE TABLE [dbo].[{PERSONS_TABLE}] (" +
+                                                     "[person_id] INT NOT NULL, " +
+                                                     "[person_age] TINYINT NULL, " +
+                                                     "[person_name] NVARCHAR (50) NULL, " +
+                                                     "PRIMARY KEY CLUSTERED ([person_id] ASC))");
 
                 initLine.ExecuteNonQuery();
             }
@@ -61,7 +62,7 @@ namespace SqlFrameworkTests
 
             Assert.That.RanToCompletion(() =>
             {
-                SqlLine deleteLine = new SqlLine($"Delete from {PERSONS_TABLE}");
+                SqlLine deleteLine = SqlLine.Build($"Delete from {PERSONS_TABLE}");
 
                 deleteLine.ExecuteNonQuery();
             });
@@ -69,7 +70,7 @@ namespace SqlFrameworkTests
 
             Assert.That.RanToCompletion(() =>
             {
-                SqlLine insertLine = new SqlLine($"Insert into {PERSONS_TABLE}").Values.Param<Person>(InsertPerson);
+                SqlLine insertLine = SqlLine.Build($"Insert into {PERSONS_TABLE}").Values().Param<Person>(InsertPerson);
 
                 insertLine.ExecuteNonQuery(TestsPersons[0]);
                 insertLine.ExecuteNonQuery(TestsPersons[1]);
@@ -99,7 +100,7 @@ namespace SqlFrameworkTests
 
         private static void DeleteTable(string tableName)
         {
-            SqlLine deleteLine = new SqlLine($"Drop Table [dbo].[{tableName}]");
+            SqlLine deleteLine = SqlLine.Build($"Drop Table [dbo].[{tableName}]");
 
             deleteLine.ExecuteNonQuery();
         }

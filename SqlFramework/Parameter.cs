@@ -9,7 +9,7 @@ namespace SqlFramework
 
         public Parameter(string columnName, object data)
         {
-            ColumnName = Setup.Pchar + columnName;
+            ColumnName = columnName;
             Data = data;
         }
     }
